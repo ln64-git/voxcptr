@@ -3,9 +3,6 @@ package vosk
 import (
 	"fmt"
 	"log"
-	"os/exec"
-	"runtime"
-	"strings"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/gordonklaus/portaudio"
@@ -69,9 +66,6 @@ func (sr *SpeechRecognizer) audioCallback(resultChan chan<- string) func([]int16
 			result := sr.recognizer.Result()
 			log.Println("Result:", result)
 			resultChan <- result
-		} else {
-			partial := sr.recognizer.PartialResult()
-			log.Println("Partial Result:", partial)
 		}
 	}
 }
@@ -83,21 +77,4 @@ func (sr *SpeechRecognizer) Stop() {
 	sr.recognizer.Free()
 	sr.model.Free()
 	portaudio.Terminate()
-}
-
-func CopyToClipboard(text string) error {
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "windows":
-		cmd = exec.Command("cmd", "/c", "echo "+text+" | clip")
-	case "darwin":
-		cmd = exec.Command("pbcopy")
-	case "linux":
-		cmd = exec.Command("xclip", "-selection", "clipboard")
-	default:
-		return fmt.Errorf("unsupported platform")
-	}
-
-	cmd.Stdin = strings.NewReader(text)
-	return cmd.Run()
 }
